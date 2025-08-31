@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Upload and Search</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #results {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload a Document</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit">Upload</button>
+        </form>
+
+        <hr style="margin-top: 40px; margin-bottom: 40px;">
+
+        <h1>Search Documents</h1>
+        <form id="search-form">
+            <input type="text" id="search-query" placeholder="Enter your search query..." required style="width: 300px;">
+            <button type="submit">Search</button>
+        </form>
+
+        <h2>Results</h2>
+        <div id="results">
+            <p>Search results will appear here.</p>
+        </div>
+    </div>
+
+    <script>
+        const searchForm = document.getElementById('search-form');
+        const searchQuery = document.getElementById('search-query');
+        const resultsDiv = document.getElementById('results');
+
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = searchQuery.value;
+            if (!query) return;
+
+            resultsDiv.innerHTML = '<p>Searching...</p>';
+
+            try {
+                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    let html = `<h3>Original Query: ${data.original_query}</h3>`;
+                    html += `<h4>Translated Query: ${data.translated_query}</h4>`;
+                    html += '<ul>';
+                    data.results.forEach(hit => {
+                        html += `<li>
+                            <p><strong>Score:</strong> ${hit.score.toFixed(4)}</p>
+                            <p><strong>Text:</strong> ${hit.payload.text}</p>
+                            <p><strong>Source:</strong> ${hit.payload.source}</p>
+                            <p><strong>Filename:</strong> ${hit.payload.filename || 'N/A'}</p>
+                        </li>`;
+                    });
+                    html += '</ul>';
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = '<p>No results found.</p>';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = `<p>Error during search: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

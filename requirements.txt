@@ -2,3 +2,6 @@ fastapi
 uvicorn[standard]
 sentence-transformers
 qdrant-client
+googletrans
+python-docx
+pypdf
