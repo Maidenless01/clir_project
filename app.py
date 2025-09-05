@@ -15,7 +15,7 @@ MODEL_NAME = "distiluse-base-multilingual-cased-v1"
 COLLECTION_NAME = "my_multilingual_docs"
 
 # --- Initialize Model and Database Client ---
-print("Loading sentence transformer model...")
+print("Loading sentence transformer model...") 
 model = SentenceTransformer(MODEL_NAME)
 print("✅ Model loaded.")
 
