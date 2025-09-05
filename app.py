@@ -11,7 +11,7 @@ import uuid
 from fastapi.responses import HTMLResponse
 
 # --- Configuration ---
-MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
+MODEL_NAME = "distiluse-base-multilingual-cased-v1"
 COLLECTION_NAME = "my_multilingual_docs"
 
 # --- Initialize Model and Database Client ---
@@ -80,7 +80,7 @@ async def upload(file: UploadFile = File(...), source: str = Form("uploaded")):
         ),
         wait=True,
     )
-    return {"status": "success", "id": doc_id, "filename": filename}
+    return {"status": "success", "id": doc_id, "filename": filename, "text": text}
 
 @app.get("/search")
 async def search(q: str):
@@ -97,7 +97,7 @@ async def search(q: str):
         hits = qdrant_client.search(
             collection_name=COLLECTION_NAME,
             query_vector=query_vector,
-            limit=3
+            limit=1
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching Qdrant: {e}")
