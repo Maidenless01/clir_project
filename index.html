@@ -72,7 +72,7 @@
                     throw new Error(data.detail || 'Upload failed');
                 }
 
-                uploadStatus.innerHTML = `<p><strong>Success!</strong> File uploaded: ${data.filename}</p>
+                uploadStatus.innerHTML = `<p><strong>Success!</strong> File uploaded: <a href="/${data.file_path}" target="_blank">${data.filename}</a></p>
                                           <p><strong>Content:</strong></p>
                                           <pre>${data.text.substring(0, 500)}...</pre>`;
             } catch (error) {
@@ -95,14 +95,21 @@
                 const data = await response.json();
 
                 if (data.results && data.results.length > 0) {
-                    const hit = data.results[0];
-                    const snippet = hit.payload.text.substring(0, 500);
                     let html = `<h3>Original Query: ${data.original_query}</h3>`;
                     html += `<h4>Translated Query: ${data.translated_query}</h4>`;
-                    html += `<div>
-                                 <p><strong>Text:</strong></p>
-                                 <p>${snippet}${hit.payload.text.length > 500 ? '...' : ''}</p>
-                             </div>`;
+                    
+                    data.results.forEach(hit => {
+                        const filename = hit.payload.filename;
+                        const filePath = hit.payload.file_path;
+                        const snippet = hit.payload.text.substring(0, 500);
+
+                        html += `<div>
+                                     <p><strong>File:</strong> <a href="/${filePath}" target="_blank">${filename}</a></p>
+                                     <p><strong>Text snippet:</strong></p>
+                                     <p>${snippet}${hit.payload.text.length > 500 ? '...' : ''}</p>
+                                 </div>`;
+                    });
+
                     resultsDiv.innerHTML = html;
                 } else {
                     resultsDiv.innerHTML = '<p>No results found.</p>';

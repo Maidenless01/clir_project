@@ -1,8 +1,6 @@
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient, models
-
-MODEL_NAME = "distiluse-base-multilingual-cased-v1"
-COLLECTION_NAME = "my_multilingual_docs"
+from app import MODEL_NAME, COLLECTION_NAME
 
 # 1. Initialize the Sentence Transformer model
 print("Loading sentence transformer model...")
@@ -19,7 +17,7 @@ documents = [
 ]
 
 # 3. Initialize Qdrant client
-client = QdrantClient(url="http://localhost:6333")
+client = QdrantClient("localhost", port=6333)
 
 # 4. Create a Qdrant collection to store vectors
 # The vector size must match the model's output dimension

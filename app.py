@@ -1,21 +1,25 @@
 # file: app.py
+import os
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi.staticfiles import StaticFiles
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient, models
 from googletrans import Translator
 import io
 from docx import Document
-import PyPDF2
+from pypdf import PdfReader
 import uuid
+import aiofiles
 
 from fastapi.responses import HTMLResponse
 
 # --- Configuration ---
-MODEL_NAME = "distiluse-base-multilingual-cased-v1"
-COLLECTION_NAME = "my_multilingual_docs"
+MODEL_NAME = os.getenv("MODEL_NAME", "distiluse-base-multilingual-cased-v1")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME", "my_multilingual_docs")
+UPLOADS_DIR = "uploads"
 
 # --- Initialize Model and Database Client ---
-print("Loading sentence transformer model...") 
+print("Loading sentence transformer model...")
 model = SentenceTransformer(MODEL_NAME)
 print("✅ Model loaded.")
 
@@ -39,6 +43,12 @@ app = FastAPI(
     version="3.0.0",
 )
 
+# Create uploads directory if it doesn't exist
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+
+# Mount the uploads directory to serve static files
+app.mount(f"/{UPLOADS_DIR}", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+
 @app.get("/", response_class=HTMLResponse)
 async def get_index():
     with open("index.html") as f:
@@ -50,17 +60,26 @@ async def upload(file: UploadFile = File(...), source: str = Form("uploaded")):
     Upload a .docx, .pdf, or .txt file, extract its text, and index in Qdrant.
     """
     filename = file.filename
+    doc_id = str(uuid.uuid4())
+    file_path = os.path.join(UPLOADS_DIR, f"{doc_id}_{filename}")
+
+    contents = await file.read()
+    # Save the file
+    async with aiofiles.open(file_path, 'wb') as out_file:
+        await out_file.write(contents)
+    
+    # Reset file pointer to read again for text extraction
+    await file.seek(0)
+    contents = await file.read()
+
     text = ""
     if filename.endswith(".docx"):
-        contents = await file.read()
         doc = Document(io.BytesIO(contents))
         text = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
     elif filename.endswith(".pdf"):
-        contents = await file.read()
-        reader = PyPDF2.PdfReader(io.BytesIO(contents))
+        reader = PdfReader(io.BytesIO(contents))
         text = "\n".join([page.extract_text() for page in reader.pages])
     elif filename.endswith(".txt"):
-        contents = await file.read()
         text = contents.decode("utf-8")
     else:
         raise HTTPException(status_code=400, detail="Only .docx, .pdf, and .txt files are supported.")
@@ -69,8 +88,8 @@ async def upload(file: UploadFile = File(...), source: str = Form("uploaded")):
         raise HTTPException(status_code=400, detail="No text found in document.")
 
     vector = model.encode(text).tolist()
-    doc_id = str(uuid.uuid4())
-    payload = {"text": text, "source": source, "filename": filename}
+    
+    payload = {"text": text, "source": source, "filename": filename, "file_path": file_path}
     qdrant_client.upsert(
         collection_name=COLLECTION_NAME,
         points=models.Batch(
@@ -80,15 +99,16 @@ async def upload(file: UploadFile = File(...), source: str = Form("uploaded")):
         ),
         wait=True,
     )
-    return {"status": "success", "id": doc_id, "filename": filename, "text": text}
+    return {"status": "success", "id": doc_id, "filename": filename, "text": text, "file_path": file_path}
 
 @app.get("/search")
-async def search(q: str):
+async def search(q: str, limit: int = 5):
     """
     Translate the query to English and perform semantic search.
     """
     try:
-        translated = (await translator.translate(q, dest="en")).text
+        translated_response = await translator.translate(q, dest="en")
+        translated = translated_response.text
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error translating query: {e}")
 
@@ -97,7 +117,7 @@ async def search(q: str):
         hits = qdrant_client.search(
             collection_name=COLLECTION_NAME,
             query_vector=query_vector,
-            limit=1
+            limit=limit
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching Qdrant: {e}")
