@@ -62,8 +62,12 @@ This project is a powerful semantic search engine that allows you to search for 
     ```bash
     uvicorn app:app --reload
     ```
+    or
+    ```bash
+    python -m uvicorn app:app --reload
+    ```
 
-6.  **Access the application:**
+7.  **Access the application:**
 
     Open your web browser and navigate to `http://127.0.0.1:8000`.
 
