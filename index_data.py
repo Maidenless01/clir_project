@@ -1,9 +1,6 @@
-# file: index_data.py
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient, models
-
-MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
-COLLECTION_NAME = "my_multilingual_docs"
+from app import MODEL_NAME, COLLECTION_NAME
 
 # 1. Initialize the Sentence Transformer model
 print("Loading sentence transformer model...")
