@@ -107,7 +107,7 @@ async def search(q: str, limit: int = 5):
     Translate the query to English and perform semantic search.
     """
     try:
-        translated_response = await translator.translate(q, dest="en")
+        translated_response = translator.translate(q, dest="en")
         translated = translated_response.text
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error translating query: {e}")
