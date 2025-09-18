@@ -9,7 +9,7 @@ import os
 # 1. Initialize the Sentence Transformer model
 print("Loading sentence transformer model...")
 model = SentenceTransformer(MODEL_NAME)
-print("✅ Model loaded.")
+print("Model loaded.")
 # Version expectations
 EXPECTED_QDRANT_SERVER_VERSION = os.getenv("QDRANT_VERSION", "1.15.1")
 EXPECTED_QDRANT_CLIENT_VERSION = os.getenv("QDRANT_CLIENT_VERSION", EXPECTED_QDRANT_SERVER_VERSION)
@@ -25,7 +25,7 @@ def _get_qdrant_server_version(host: str = "localhost", port: int = 6333) -> str
 def _check_qdrant_versions() -> None:
     server_version = _get_qdrant_server_version("localhost", 6333)
     client_version = importlib_metadata.version("qdrant-client")
-    print(f"Qdrant versions → server={server_version}, client={client_version}, expected={EXPECTED_QDRANT_SERVER_VERSION}")
+    print(f"Qdrant versions - server={server_version}, client={client_version}, expected={EXPECTED_QDRANT_SERVER_VERSION}")
     if not server_version:
         raise RuntimeError("Cannot reach Qdrant at http://localhost:6333. Is the container running?")
     if server_version.lstrip("v") != str(EXPECTED_QDRANT_SERVER_VERSION).lstrip("v") or client_version != str(EXPECTED_QDRANT_CLIENT_VERSION):
@@ -61,7 +61,7 @@ print(f"Collection '{COLLECTION_NAME}' created.")
 # 5. Encode the documents and upload them to Qdrant
 print("Encoding documents into vectors...")
 vectors = model.encode([doc["text"] for doc in documents])
-print("✅ Documents encoded.")
+print("Documents encoded.")
 
 print("Uploading vectors to Qdrant...")
 client.upsert(
@@ -73,4 +73,4 @@ client.upsert(
     ),
     wait=True,
 )
-print("✅ Upload complete.")
+print("Upload complete.")

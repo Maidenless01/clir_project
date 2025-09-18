@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 sentence-transformers
 qdrant-client
-googletrans==4.0.0rc1
+googletrans
 python-docx
 pypdf
 aiofiles
