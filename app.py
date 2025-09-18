@@ -26,10 +26,9 @@ UPLOADS_DIR = "uploads"
 # --- Initialize Model and Database Client ---
 print("Loading sentence transformer model...")
 model = SentenceTransformer(MODEL_NAME)
-print("✅ Model loaded.")
+print("Model loaded.")
 
 qdrant_client = QdrantClient("localhost", port=6333)
-translator = Translator()
 
 def _get_qdrant_server_version(host: str = "localhost", port: int = 6333) -> str | None:
     try:
@@ -42,7 +41,7 @@ def _get_qdrant_server_version(host: str = "localhost", port: int = 6333) -> str
 def _check_qdrant_versions() -> None:
     server_version = _get_qdrant_server_version("localhost", 6333)
     client_version = importlib_metadata.version("qdrant-client")
-    print(f"Qdrant versions → server={server_version}, client={client_version}, expected={EXPECTED_QDRANT_SERVER_VERSION}")
+    print(f"Qdrant versions - server={server_version}, client={client_version}, expected={EXPECTED_QDRANT_SERVER_VERSION}")
     if not server_version:
         raise RuntimeError("Cannot reach Qdrant at http://localhost:6333. Is the container running?")
     if server_version.lstrip("v") != str(EXPECTED_QDRANT_SERVER_VERSION).lstrip("v") or client_version != str(EXPECTED_QDRANT_CLIENT_VERSION):
@@ -148,8 +147,9 @@ async def search(q: str, limit: int = 5):
     Translate the query to English and perform semantic search.
     """
     try:
-        translated_response = await translator.translate(q, dest="en")
-        translated = translated_response.text
+        async with Translator() as translator:
+            translated_response = await translator.translate(q, dest="en")
+            translated = translated_response.text
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error translating query: {e}")
 

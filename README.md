@@ -96,3 +96,37 @@ This project is a powerful semantic search engine that allows you to search for 
 ├── qdrant_storage/         # Directory where Qdrant persists its data
 └── uploads/                # Directory where uploaded files are stored
 ```
+
+## Troubleshooting
+
+### Corrupted Qdrant Data
+
+If you encounter errors related to Qdrant data corruption, you can reset the Qdrant storage and re-index your data.
+
+1.  **Stop the Docker containers:**
+
+    ```bash
+    docker-compose down
+    ```
+
+2.  **Delete the Qdrant storage directory:**
+
+    ```bash
+    rm -rf qdrant_storage
+    ```
+
+3.  **Restart the services:**
+
+    ```bash
+    docker-compose up -d
+    ```
+
+4.  **Re-index your data:**
+
+    If you have an indexing script, run it again. For example:
+
+    ```bash
+    python index_data.py
+    ```
+
+    You will also need to re-upload any files you had previously indexed.
