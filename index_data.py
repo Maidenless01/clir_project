@@ -1,11 +1,40 @@
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient, models
 from app import MODEL_NAME, COLLECTION_NAME
+import json
+import urllib.request
+import importlib.metadata as importlib_metadata
+import os
 
 # 1. Initialize the Sentence Transformer model
 print("Loading sentence transformer model...")
 model = SentenceTransformer(MODEL_NAME)
 print("✅ Model loaded.")
+# Version expectations
+EXPECTED_QDRANT_SERVER_VERSION = os.getenv("QDRANT_VERSION", "1.15.1")
+EXPECTED_QDRANT_CLIENT_VERSION = os.getenv("QDRANT_CLIENT_VERSION", EXPECTED_QDRANT_SERVER_VERSION)
+
+def _get_qdrant_server_version(host: str = "localhost", port: int = 6333) -> str | None:
+    try:
+        with urllib.request.urlopen(f"http://{host}:{port}") as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("version")
+    except Exception:
+        return None
+
+def _check_qdrant_versions() -> None:
+    server_version = _get_qdrant_server_version("localhost", 6333)
+    client_version = importlib_metadata.version("qdrant-client")
+    print(f"Qdrant versions → server={server_version}, client={client_version}, expected={EXPECTED_QDRANT_SERVER_VERSION}")
+    if not server_version:
+        raise RuntimeError("Cannot reach Qdrant at http://localhost:6333. Is the container running?")
+    if server_version.lstrip("v") != str(EXPECTED_QDRANT_SERVER_VERSION).lstrip("v") or client_version != str(EXPECTED_QDRANT_CLIENT_VERSION):
+        raise RuntimeError(
+            "Qdrant version mismatch. Align docker image tag and Python client. "
+            f"Server={server_version}, Client={client_version}, Expected={EXPECTED_QDRANT_SERVER_VERSION}"
+        )
+
+_check_qdrant_versions()
 
 # 2. Sample documents in English
 documents = [
