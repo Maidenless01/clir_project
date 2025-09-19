@@ -73,8 +73,10 @@ app = FastAPI(
 # Create uploads directory if it doesn't exist
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
-# Mount the uploads directory to serve static files
+# Mount static directories
 app.mount(f"/{UPLOADS_DIR}", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+if os.path.isdir("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def get_index():
