@@ -3,50 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Upload and Search</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        #results, #upload-status {
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-    </style>
+    <title>ITUS Semantic Document Portal</title>
+    <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Upload a Document</h1>
-        <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" required>
-            <button type="submit">Upload</button>
-        </form>
-        <div id="upload-status"></div>
-
-        <hr style="margin-top: 40px; margin-bottom: 40px;">
-
-        <h1>Search Documents</h1>
-        <form id="search-form">
-            <input type="text" id="search-query" placeholder="Enter your search query..." required style="width: 300px;">
-            <button type="submit">Search</button>
-        </form>
-
-        <h2>Results</h2>
-        <div id="results">
-            <p>Search results will appear here.</p>
+    <header class="site-header">
+        <div class="brand">
+            <span>ITUS Semantic Document Portal</span>
+            <span class="brand-badge">Beta</span>
         </div>
-    </div>
+        <div class="nav-hint">Cross-Lingual Knowledge Access</div>
+    </header>
+    <main class="main-wrapper">
+        <div class="stack">
+            <section class="card" id="upload-section">
+                <h2>Upload Document</h2>
+                <div id="dropzone" class="dropzone" tabindex="0">
+                    <div class="dz-label">Drag & Drop your file here</div>
+                    <div class="divider">or</div>
+                    <button type="button" id="browse-btn" class="secondary">Browse File</button>
+                    <p class="hint">Supported: .docx .pdf .txt</p>
+                    <p class="selected-file" id="selected-file" aria-live="polite"></p>
+                </div>
+                <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data" style="display:none;">
+                    <input type="file" name="file" id="hidden-file-input" required>
+                </form>
+                <div style="margin-top:18px; display:flex; gap:12px;">
+                    <button id="upload-submit" disabled>Upload</button>
+                    <button id="clear-file" type="button" class="secondary" disabled>Clear</button>
+                </div>
+                <div id="upload-status" class="status-box" aria-live="polite"></div>
+            </section>
+            <section class="card" id="search-section">
+                <h2>Search Documents</h2>
+                <form id="search-form">
+                    <input type="text" id="search-query" placeholder="Enter your search query in any language..." required>
+                    <button type="submit">Search</button>
+                </form>
+                <div class="results-box" id="results">
+                    <p class="results-meta">Awaiting query...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+    <footer class="site-footer">
+        <p>&copy; <span id="year"></span> ITUS Research. All rights reserved.</p>
+    </footer>
 
     <script>
         const searchForm = document.getElementById('search-form');
@@ -54,11 +56,55 @@
         const resultsDiv = document.getElementById('results');
         const uploadForm = document.getElementById('upload-form');
         const uploadStatus = document.getElementById('upload-status');
+        const yearSpan = document.getElementById('year');
+        const dropzone = document.getElementById('dropzone');
+        const browseBtn = document.getElementById('browse-btn');
+        const hiddenFileInput = document.getElementById('hidden-file-input');
+        const selectedFileLabel = document.getElementById('selected-file');
+        const uploadSubmit = document.getElementById('upload-submit');
+        const clearFile = document.getElementById('clear-file');
+        yearSpan.textContent = new Date().getFullYear();
 
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(uploadForm);
-            uploadStatus.innerHTML = '<p>Uploading...</p>';
+        function resetFileSelection() {
+            hiddenFileInput.value = '';
+            selectedFileLabel.textContent = '';
+            uploadSubmit.disabled = true;
+            clearFile.disabled = true;
+        }
+
+        browseBtn.addEventListener('click', () => hiddenFileInput.click());
+        clearFile.addEventListener('click', () => { resetFileSelection(); uploadStatus.innerHTML=''; });
+
+        hiddenFileInput.addEventListener('change', () => {
+            if (hiddenFileInput.files.length) {
+                selectedFileLabel.textContent = hiddenFileInput.files[0].name;
+                uploadSubmit.disabled = false;
+                clearFile.disabled = false;
+            } else {
+                resetFileSelection();
+            }
+        });
+
+        ;['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('dragover'); }));
+        ;['dragleave','drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); if(ev!=='drop') dropzone.classList.remove('dragover'); }));
+        dropzone.addEventListener('drop', e => {
+            const dtFiles = e.dataTransfer.files;
+            if (!dtFiles || !dtFiles.length) return;
+            hiddenFileInput.files = dtFiles;
+            dropzone.classList.remove('dragover');
+            const file = dtFiles[0];
+            selectedFileLabel.textContent = file.name;
+            uploadSubmit.disabled = false;
+            clearFile.disabled = false;
+        });
+
+        dropzone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hiddenFileInput.click(); }});
+
+        async function performUpload() {
+            if (!hiddenFileInput.files.length) return;
+            const formData = new FormData();
+            formData.append('file', hiddenFileInput.files[0]);
+            uploadStatus.innerHTML = '<p class="alert-info">Uploading...</p>';
 
             try {
                 const response = await fetch('/upload', {
@@ -72,20 +118,22 @@
                     throw new Error(data.detail || 'Upload failed');
                 }
 
-                uploadStatus.innerHTML = `<p><strong>Success!</strong> File uploaded: <a href="/${data.file_path}" target="_blank">${data.filename}</a></p>
-                                          <p><strong>Content:</strong></p>
-                                          <pre>${data.text.substring(0, 500)}...</pre>`;
+                uploadStatus.innerHTML = `<p class="alert-success"><strong>Success:</strong> <a href="/${data.file_path}" target="_blank">${data.filename}</a></p>
+                                          <p><strong>Preview:</strong></p>
+                                          <pre>${data.text.substring(0, 500)}${data.text.length>500?'...':''}</pre>`;
             } catch (error) {
-                uploadStatus.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+                uploadStatus.innerHTML = `<p class="alert-error"><strong>Error:</strong> ${error.message}</p>`;
             }
-        });
+        }
+
+        uploadSubmit.addEventListener('click', () => performUpload());
 
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const query = searchQuery.value;
             if (!query) return;
 
-            resultsDiv.innerHTML = '<p>Searching...</p>';
+            resultsDiv.innerHTML = '<p class="results-meta">Processing...</p>';
 
             try {
                 const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
@@ -95,28 +143,25 @@
                 const data = await response.json();
 
                 if (data.results && data.results.length > 0) {
-                    let html = `<h3>Original Query: ${data.original_query}</h3>`;
-                    html += `<h4>Translated Query: ${data.translated_query}</h4>`;
-                    
+                    let html = `<div class="results-meta">Original: <strong>${data.original_query}</strong><br>Translated: <strong>${data.translated_query}</strong></div>`;
+                    html += `<div class="result-list">`;
                     data.results.forEach(hit => {
                         const filename = hit.payload.filename;
                         const filePath = hit.payload.file_path;
                         const snippet = hit.payload.text.substring(0, 500);
-
-                        html += `<div>
-                                     <p><strong>File:</strong> <a href="/${filePath}" target="_blank">${filename}</a></p>
-                                     <p><strong>Text snippet:</strong></p>
-                                     <p>${snippet}${hit.payload.text.length > 500 ? '...' : ''}</p>
-                                 </div>`;
+                        html += `<article class="result-item">
+                                    <h3><a href="/${filePath}" target="_blank" rel="noopener">${filename}</a></h3>
+                                    <div class="snippet">${snippet}${hit.payload.text.length > 500 ? '...' : ''}</div>
+                                 </article>`;
                     });
-
+                    html += `</div>`;
                     resultsDiv.innerHTML = html;
                 } else {
-                    resultsDiv.innerHTML = '<p>No results found.</p>';
+                    resultsDiv.innerHTML = '<p class="results-meta">No results found.</p>';
                 }
             } catch (error) {
                 console.error('Search error:', error);
-                resultsDiv.innerHTML = `<p>Error during search: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="alert-error">Error during search: ${error.message}</p>`;
             }
         });
     </script>
