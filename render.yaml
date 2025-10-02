@@ -10,15 +10,10 @@ services:
         value: distiluse-base-multilingual-cased-v1
       - key: COLLECTION_NAME
         value: my_multilingual_docs
-      - key: QDRANT_HOST
-        value: localhost
-      - key: QDRANT_PORT
-        value: 6333
+      - key: QDRANT_URL
+        value: https://5067c58b-1ecc-4747-90ad-180c7e35ba19.europe-west3-0.gcp.cloud.qdrant.io:6333
+      - key: QDRANT_API_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.MdHxQb4qBkQcBoKbbiY2s75mpp3r-tdkGVgxVJ0v3y0
       - key: PYTHON_VERSION
         value: 3.11.0
     autoDeploy: false
-
-  - type: redis
-    name: qdrant-redis
-    plan: free
-    ipAllowList: []

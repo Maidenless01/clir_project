@@ -27,6 +27,7 @@ UPLOADS_DIR = "uploads"
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
 QDRANT_URL = os.getenv("QDRANT_URL")  # For cloud Qdrant instances
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")  # For Qdrant Cloud authentication
 
 # --- Initialize Model and Database Client ---
 print("Loading sentence transformer model...")
@@ -35,7 +36,10 @@ print("Model loaded.")
 
 # Initialize Qdrant client with production flexibility
 if QDRANT_URL:
-    qdrant_client = QdrantClient(url=QDRANT_URL)
+    if QDRANT_API_KEY:
+        qdrant_client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+    else:
+        qdrant_client = QdrantClient(url=QDRANT_URL)
 else:
     qdrant_client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 
