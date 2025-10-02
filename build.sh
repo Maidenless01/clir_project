@@ -10,4 +10,7 @@ echo "Installing Python dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
+# Make startup script executable
+chmod +x start.sh
+
 echo "Build completed successfully!"
