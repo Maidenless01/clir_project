@@ -3,7 +3,7 @@ services:
     name: itus-semantic-portal
     env: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn app:app --host 0.0.0.0 --port $PORT --worker-class uvicorn.workers.UvicornWorker"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --worker-class uvicorn.workers.UvicornWorker --timeout 120 --keep-alive 2"
     plan: free
     envVars:
       - key: MODEL_NAME
