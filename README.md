@@ -84,16 +84,65 @@ This project is a powerful semantic search engine that allows you to search for 
     -   Click "Search".
     -   The top matching documents will be displayed, along with a snippet of their content and a link to the original file.
 
+## Deployment on Render
+
+This project is configured for easy deployment on [Render](https://render.com/). 
+
+### Quick Deploy
+
+1. **Fork/Clone this repository** to your GitHub account
+2. **Set up Qdrant Cloud** (recommended) or external Qdrant instance:
+   - Sign up at [Qdrant Cloud](https://cloud.qdrant.io/)
+   - Create a cluster and get your connection URL
+3. **Deploy to Render**:
+   - Connect your GitHub repo to Render
+   - Use the included `render.yaml` configuration
+   - Set environment variables (see below)
+
+### Environment Variables for Render
+
+Set these in your Render service dashboard:
+
+```
+MODEL_NAME=distiluse-base-multilingual-cased-v1
+COLLECTION_NAME=my_multilingual_docs
+QDRANT_URL=https://your-cluster-id.europe-west3-0.gcp.cloud.qdrant.io:6333
+# OR if using self-hosted Qdrant:
+QDRANT_HOST=your-qdrant-host
+QDRANT_PORT=6333
+```
+
+### Manual Render Setup
+
+If not using `render.yaml`, create a new Web Service with:
+- **Build Command**: `./build.sh`
+- **Start Command**: `gunicorn app:app --host 0.0.0.0 --port $PORT --worker-class uvicorn.workers.UvicornWorker`
+- **Environment**: Python 3.11
+
+### Qdrant Setup Options
+
+**Option 1: Qdrant Cloud (Recommended for production)**
+- Sign up at [cloud.qdrant.io](https://cloud.qdrant.io/)
+- Create a cluster
+- Set `QDRANT_URL` to your cluster URL
+
+**Option 2: Self-hosted Qdrant**
+- Deploy Qdrant on another service (Railway, DigitalOcean, etc.)
+- Set `QDRANT_HOST` and `QDRANT_PORT`
+
 ## Project Structure
 
 ```
 .
 ├── app.py                  # The main FastAPI application logic
+├── build.sh               # Render build script
+├── render.yaml            # Render service configuration
 ├── docker-compose.yml      # Docker Compose configuration for the Qdrant service
 ├── index.html              # The frontend web interface
 ├── index_data.py           # Script to index initial sample data
 ├── requirements.txt        # Python dependencies
-├── qdrant_storage/         # Directory where Qdrant persists its data
+├── static/                 # CSS and static assets
+├── qdrant_storage/         # Directory where Qdrant persists its data (local only)
 └── uploads/                # Directory where uploaded files are stored
 ```
 
