@@ -1,11 +1,20 @@
-fastapi
-uvicorn[standard]
-gunicorn
-sentence-transformers
-qdrant-client
-googletrans==4.0.0rc1
-python-docx
-pypdf
-aiofiles
-python-multipart
-tf-keras
+# Core web framework
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+gunicorn==22.0.0
+
+# AI/ML dependencies  
+sentence-transformers==5.1.0
+qdrant-client==1.15.1
+tf-keras==2.20.1
+
+# Translation
+googletrans==4.0.2
+
+# Document processing
+python-docx==1.2.0
+pypdf==6.0.0
+
+# File handling
+aiofiles==24.1.0
+python-multipart==0.0.20
