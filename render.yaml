@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: itus-semantic-portal
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn app:app --host 0.0.0.0 --port $PORT --worker-class uvicorn.workers.UvicornWorker"
+    plan: free
+    envVars:
+      - key: MODEL_NAME
+        value: distiluse-base-multilingual-cased-v1
+      - key: COLLECTION_NAME
+        value: my_multilingual_docs
+      - key: QDRANT_HOST
+        value: localhost
+      - key: QDRANT_PORT
+        value: 6333
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    autoDeploy: false
+
+  - type: redis
+    name: qdrant-redis
+    plan: free
+    ipAllowList: []

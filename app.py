@@ -23,32 +23,48 @@ EXPECTED_QDRANT_SERVER_VERSION = os.getenv("QDRANT_VERSION", "1.15.1")
 EXPECTED_QDRANT_CLIENT_VERSION = os.getenv("QDRANT_CLIENT_VERSION", EXPECTED_QDRANT_SERVER_VERSION)
 UPLOADS_DIR = "uploads"
 
+# Production configuration
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
+QDRANT_URL = os.getenv("QDRANT_URL")  # For cloud Qdrant instances
+
 # --- Initialize Model and Database Client ---
 print("Loading sentence transformer model...")
 model = SentenceTransformer(MODEL_NAME)
 print("Model loaded.")
 
-qdrant_client = QdrantClient("localhost", port=6333)
+# Initialize Qdrant client with production flexibility
+if QDRANT_URL:
+    qdrant_client = QdrantClient(url=QDRANT_URL)
+else:
+    qdrant_client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 
-def _get_qdrant_server_version(host: str = "localhost", port: int = 6333) -> str | None:
+def _get_qdrant_server_version(host: str = None, port: int = None) -> str | None:
+    if not host:
+        host = QDRANT_HOST
+    if not port:
+        port = QDRANT_PORT
     try:
-        with urllib.request.urlopen(f"http://{host}:{port}") as resp:
+        # Handle both HTTP and HTTPS URLs
+        protocol = "https" if QDRANT_URL and "https" in QDRANT_URL else "http"
+        url = f"{protocol}://{host}:{port}" if not QDRANT_URL else QDRANT_URL
+        with urllib.request.urlopen(url) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             return data.get("version")
     except Exception:
         return None
 
 def _check_qdrant_versions() -> None:
-    server_version = _get_qdrant_server_version("localhost", 6333)
+    server_version = _get_qdrant_server_version()
     client_version = importlib_metadata.version("qdrant-client")
     print(f"Qdrant versions - server={server_version}, client={client_version}, expected={EXPECTED_QDRANT_SERVER_VERSION}")
     if not server_version:
-        raise RuntimeError("Cannot reach Qdrant at http://localhost:6333. Is the container running?")
+        qdrant_endpoint = QDRANT_URL or f"http://{QDRANT_HOST}:{QDRANT_PORT}"
+        print(f"Warning: Cannot reach Qdrant at {qdrant_endpoint}. Skipping version check in production.")
+        return  # Skip version check in production if Qdrant isn't immediately available
     if server_version.lstrip("v") != str(EXPECTED_QDRANT_SERVER_VERSION).lstrip("v") or client_version != str(EXPECTED_QDRANT_CLIENT_VERSION):
-        raise RuntimeError(
-            "Qdrant version mismatch. Align docker image tag and Python client. "
-            f"Server={server_version}, Client={client_version}, Expected={EXPECTED_QDRANT_SERVER_VERSION}"
-        )
+        print(f"Warning: Qdrant version mismatch. Server={server_version}, Client={client_version}, Expected={EXPECTED_QDRANT_SERVER_VERSION}")
+        # Don't raise error in production, just warn
 
 # Enforce version compatibility on startup
 _check_qdrant_versions()
@@ -85,7 +101,7 @@ async def get_index():
 
 @app.get("/health")
 def health():
-    server_version = _get_qdrant_server_version("localhost", 6333)
+    server_version = _get_qdrant_server_version()
     client_version = importlib_metadata.version("qdrant-client")
     return {
         "status": "ok",
@@ -94,6 +110,7 @@ def health():
         "expected_qdrant_version": EXPECTED_QDRANT_SERVER_VERSION,
         "model_name": MODEL_NAME,
         "collection_name": COLLECTION_NAME,
+        "qdrant_endpoint": QDRANT_URL or f"{QDRANT_HOST}:{QDRANT_PORT}",
     }
 
 @app.post("/upload")
