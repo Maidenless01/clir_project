@@ -1,14 +1,37 @@
-# Semantic Cross-Lingual Document Search
+# 🎓 ITUS Semantic Document Portal
 
-This project is a powerful semantic search engine that allows you to search for documents using queries in any language. It leverages a multilingual sentence embedding model to understand the meaning behind your words, providing highly relevant results even if the query language doesn't match the document language.
+**Intelligent Document Search & Analysis System**
 
-## Features
+[![Deploy to Google Cloud](https://img.shields.io/badge/Deploy%20to-Google%20Cloud-4285F4?logo=googlecloud)](https://console.cloud.google.com/)
+[![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-green?logo=fastapi)](https://fastapi.tiangolo.com)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20DB-red)](https://qdrant.tech)
 
--   **Cross-Lingual Search:** Search your documents using queries in various languages (e.g., French, Spanish, German) and get relevant results from your English document base.
--   **File Upload:** Easily upload and index documents in various formats (`.docx`, `.pdf`, `.txt`).
--   **Semantic Understanding:** Goes beyond keyword matching to find documents that are contextually related to your query.
--   **Simple Web Interface:** A clean and straightforward UI for uploading files and searching.
--   **Dockerized:** The entire application stack (including the Qdrant vector database) is containerized for easy setup and deployment.
+## 🚀 Quick Deploy to Google Cloud
+
+### One-Click Deploy:
+```bash
+.\deploy-simple.bat
+```
+
+### Manual Deploy:
+```bash
+gcloud run deploy itus-semantic-portal \
+    --source . \
+    --platform managed \
+    --region us-central1 \
+    --allow-unauthenticated \
+    --memory 2Gi
+```
+
+## ✨ Features
+
+- 🔍 **Semantic Search** - Find documents by meaning, not just keywords  
+- 🌍 **Multilingual Support** - Works with multiple languages
+- 📄 **Document Processing** - PDF, DOCX, TXT file support
+- 🎨 **Modern UI** - Clean, institutional design
+- ☁️ **Cloud-Ready** - Deploy to Google Cloud with generous free tier
+- 🔄 **Auto-Scaling** - Scales to zero when not in use
 
 ## Tech Stack
 
@@ -84,66 +107,56 @@ This project is a powerful semantic search engine that allows you to search for 
     -   Click "Search".
     -   The top matching documents will be displayed, along with a snippet of their content and a link to the original file.
 
-## Deployment on Render
+## 📋 Prerequisites
 
-This project is configured for easy deployment on [Render](https://render.com/). 
+1. **Google Cloud Account** - [Sign up for free](https://cloud.google.com/free) ($300 credit!)
+2. **Google Cloud SDK** - [Install here](https://cloud.google.com/sdk/docs/install-windows)
+3. **Qdrant Cloud** - Vector database (configured ✅)
 
-### Quick Deploy
+## 🎯 Deployment Options
 
-1. **Fork/Clone this repository** to your GitHub account
-2. **Set up Qdrant Cloud** (recommended) or external Qdrant instance:
-   - Sign up at [Qdrant Cloud](https://cloud.qdrant.io/)
-   - Create a cluster and get your connection URL
-3. **Deploy to Render**:
-   - Connect your GitHub repo to Render
-   - Use the included `render.yaml` configuration
-   - Set environment variables (see below)
+| Method | Difficulty | Best For |
+|--------|------------|----------|
+| **Cloud Run** | 🟡 Medium | Most users (2M requests/month free) |
+| **App Engine** | 🟢 Easy | Traditional apps (28 hours/day free) |
 
-### Environment Variables for Render
+## 💰 Free Tier Limits
 
-Set these in your Render service dashboard:
+- **Google Cloud Run**: 2 million requests/month
+- **Google App Engine**: 28 instance hours/day  
+- **Qdrant Cloud**: 1GB storage free
 
-```
-MODEL_NAME=distiluse-base-multilingual-cased-v1
-COLLECTION_NAME=my_multilingual_docs
-QDRANT_URL=https://your-cluster-id.europe-west3-0.gcp.cloud.qdrant.io:6333
-# OR if using self-hosted Qdrant:
-QDRANT_HOST=your-qdrant-host
-QDRANT_PORT=6333
-```
+## 📚 Documentation
 
-### Manual Render Setup
+- **[Setup Guide](SETUP_GUIDE.md)** - Step-by-step deployment instructions
+- **[Cloud Deployment](CLOUD_DEPLOYMENT.md)** - Detailed Google Cloud configuration
+- **[Qdrant Setup](QDRANT_SETUP.md)** - Vector database configuration
 
-If not using `render.yaml`, create a new Web Service with:
-- **Build Command**: `./build.sh`
-- **Start Command**: `gunicorn app:app --host 0.0.0.0 --port $PORT --worker-class uvicorn.workers.UvicornWorker`
-- **Environment**: Python 3.11
+## 🆘 Support
 
-### Qdrant Setup Options
+Run into issues? Check our guides:
+1. Run `.\DEPLOY.bat` for interactive setup
+2. Read `SETUP_GUIDE.md` for troubleshooting
+3. Check `CLOUD_DEPLOYMENT.md` for advanced configuration
 
-**Option 1: Qdrant Cloud (Recommended for production)**
-- Sign up at [cloud.qdrant.io](https://cloud.qdrant.io/)
-- Create a cluster
-- Set `QDRANT_URL` to your cluster URL
-
-**Option 2: Self-hosted Qdrant**
-- Deploy Qdrant on another service (Railway, DigitalOcean, etc.)
-- Set `QDRANT_HOST` and `QDRANT_PORT`
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 .
-├── app.py                  # The main FastAPI application logic
-├── build.sh               # Render build script
-├── render.yaml            # Render service configuration
-├── docker-compose.yml      # Docker Compose configuration for the Qdrant service
-├── index.html              # The frontend web interface
-├── index_data.py           # Script to index initial sample data
-├── requirements.txt        # Python dependencies
-├── static/                 # CSS and static assets
-├── qdrant_storage/         # Directory where Qdrant persists its data (local only)
-└── uploads/                # Directory where uploaded files are stored
+├── app.py                  # Main FastAPI application
+├── app.yaml               # Google App Engine configuration
+├── cloudrun.yaml          # Google Cloud Run configuration  
+├── Dockerfile             # Container configuration
+├── build.sh               # Build script
+├── deploy-simple.bat      # Easy deployment script
+├── DEPLOY.bat             # Interactive deployment menu
+├── docker-compose.yml     # Local development with Qdrant
+├── index.html             # Frontend web interface
+├── index_data.py          # Sample data indexing script
+├── requirements.txt       # Python dependencies
+├── static/                # CSS and static assets
+├── qdrant_storage/        # Local Qdrant data (development only)
+└── uploads/               # Uploaded files directory
 ```
 
 ## Troubleshooting

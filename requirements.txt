@@ -18,6 +18,3 @@ pypdf==6.0.0
 # File handling
 aiofiles==24.1.0
 python-multipart==0.0.20
-
-# Serverless compatibility
-mangum==0.18.0

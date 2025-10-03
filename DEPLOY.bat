@@ -8,45 +8,49 @@ echo     ██║   ██║   ██║   ██║╚════██║  
 echo     ██║   ██║   ╚██████╔╝███████║    ██║     ╚██████╔╝██║  ██║   ██║   ██║  ██║███████╗
 echo     ╚═╝   ╚═╝    ╚═════╝ ╚══════╝    ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚══════╝
 echo.
-echo                          🚀 Cloud Deployment Setup 🚀
+echo                    🚀 Google Cloud Deployment Setup 🚀
 echo     ========================================================================
 echo.
-echo     Choose your preferred cloud platform:
+echo     Choose your deployment option:
 echo.
-echo     1) 🟢 AWS App Runner     (Easiest - Web GUI setup)
-echo     2) 🔵 Google Cloud Run   (Most generous free tier)  
-echo     3) 🟡 AWS Lambda         (Serverless - pay per use)
-echo     4) 📚 View setup guides  (Detailed instructions)
+echo     1) � Google Cloud Run      (Recommended - Most generous free tier)
+echo     2) � Google App Engine     (Fully managed platform)
+echo     3) � Google Cloud Run + Docker (Advanced)
+echo     4) 📚 View setup guides     (Detailed instructions)
 echo     5) ❌ Exit
 echo.
 set /p choice="     Enter your choice (1-5): "
 
 if "%choice%"=="1" (
     echo.
-    echo     🟢 Setting up AWS App Runner...
+    echo     � Setting up Google Cloud Run...
     echo     ========================================================================
-    echo.
-    echo     📋 Steps to follow:
-    echo     1. Create AWS account: https://aws.amazon.com/free/
-    echo     2. Go to App Runner Console (opening now...)
-    echo     3. Create Service ^> Source Code Repository
-    echo     4. Connect GitHub ^> Select this repository
-    echo     5. Click Deploy!
-    echo.
-    start https://console.aws.amazon.com/apprunner/
-    echo     ✅ AWS Console opened in your browser!
+    call deploy-simple.bat
     
 ) else if "%choice%"=="2" (
     echo.
-    echo     🔵 Setting up Google Cloud Run...
+    echo     🟦 Setting up Google App Engine...
     echo     ========================================================================
-    call setup-gcp.bat
+    echo.
+    echo     📋 Steps to follow:
+    echo     1. Install Google Cloud SDK: https://cloud.google.com/sdk
+    echo     2. Login: gcloud auth login
+    echo     3. Set project: gcloud config set project YOUR_PROJECT_ID
+    echo     4. Deploy: gcloud app deploy app.yaml
+    echo.
+    pause
     
 ) else if "%choice%"=="3" (
     echo.
-    echo     🟡 Setting up AWS Lambda...
+    echo     � Setting up Google Cloud Run with Docker...
     echo     ========================================================================
-    call setup-aws.bat
+    echo.
+    echo     📋 Steps to follow:
+    echo     1. Build: docker build -t gcr.io/PROJECT_ID/itus-portal .
+    echo     2. Push: docker push gcr.io/PROJECT_ID/itus-portal
+    echo     3. Deploy: gcloud run deploy --image gcr.io/PROJECT_ID/itus-portal
+    echo.
+    pause
     
 ) else if "%choice%"=="4" (
     echo.
@@ -67,7 +71,7 @@ if "%choice%"=="1" (
 
 echo.
 echo     ========================================================================
-echo     🎉 Thanks for using ITUS Portal deployment setup!
+echo     🎉 Thanks for using ITUS Portal Google Cloud deployment!
 echo     📧 Need help? Check SETUP_GUIDE.md for detailed instructions
 echo     ========================================================================
 pause
