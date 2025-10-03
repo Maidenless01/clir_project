@@ -1,0 +1,36 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: itus-semantic-portal
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/memory: "2Gi"
+        run.googleapis.com/cpu: "1000m"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+      - image: gcr.io/PROJECT_ID/itus-portal
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL_NAME
+          value: "distiluse-base-multilingual-cased-v1"
+        - name: COLLECTION_NAME
+          value: "my_multilingual_docs"
+        - name: QDRANT_URL
+          value: "https://5067c58b-1ecc-4747-90ad-180c7e35ba19.europe-west3-0.gcp.cloud.qdrant.io:6333"
+        - name: QDRANT_API_KEY
+          value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.MdHxQb4qBkQcBoKbbiY2s75mpp3r-tdkGVgxVJ0v3y0"
+        - name: PORT
+          value: "8000"
+        resources:
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"

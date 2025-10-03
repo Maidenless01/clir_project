@@ -1,0 +1,18 @@
+runtime: python311
+service: default
+
+env_variables:
+  MODEL_NAME: "distiluse-base-multilingual-cased-v1"
+  COLLECTION_NAME: "my_multilingual_docs"
+  QDRANT_URL: "https://5067c58b-1ecc-4747-90ad-180c7e35ba19.europe-west3-0.gcp.cloud.qdrant.io:6333"
+  QDRANT_API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.MdHxQb4qBkQcBoKbbiY2s75mpp3r-tdkGVgxVJ0v3y0"
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 1
+  target_cpu_utilization: 0.6
+
+resources:
+  cpu: 1
+  memory_gb: 1
+  disk_size_gb: 10

@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: ITUS Semantic Document Portal - Serverless
+
+Globals:
+  Function:
+    Timeout: 900
+    MemorySize: 3008
+    Environment:
+      Variables:
+        MODEL_NAME: "distiluse-base-multilingual-cased-v1"
+        COLLECTION_NAME: "my_multilingual_docs"
+        QDRANT_URL: "https://5067c58b-1ecc-4747-90ad-180c7e35ba19.europe-west3-0.gcp.cloud.qdrant.io:6333"
+        QDRANT_API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.MdHxQb4qBkQcBoKbbiY2s75mpp3r-tdkGVgxVJ0v3y0"
+
+Resources:
+  ITUSPortalFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: lambda_handler.handler
+      Runtime: python3.11
+      Events:
+        ITUSPortalApi:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+        ITUSPortalRoot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+
+Outputs:
+  ITUSPortalApi:
+    Description: "API Gateway endpoint URL for ITUS Portal"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
